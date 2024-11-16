@@ -1,24 +1,15 @@
-import { NextResponse } from 'next/server';
-import { getDbPool } from '@/lib/mysql';
-import { RowDataPacket } from 'mysql2';
+import { connectToDatabase } from '@/lib/mysql';
+import { NextRequest, NextResponse } from 'next/server';
 
-type Book = {
-  id: number;
-  title: string;
-  author: string;
-  cover_image_url: string;
-};
-
-export async function GET() {
+export const GET = async (req: NextRequest) => {
   try {
-    const pool = getDbPool();
-    const [rows] = await pool.query<Book[] & RowDataPacket[]>('SELECT * FROM books');
+    const connection = await connectToDatabase();
+    const [rows] = await connection.query('SELECT * FROM books');
+    await connection.end();
+
     return NextResponse.json(rows);
-  } catch (error: any) {
-    console.error('错误详情:', error.message, error.stack);
-    return NextResponse.json(
-      { message: '数据库连接失败', error: error.message },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error('Error fetching books:', err);
+    return NextResponse.json({ error: 'Failed to fetch books' }, { status: 500 });
   }
-}
+};

@@ -1,26 +1,19 @@
-import mysql, { Pool } from 'mysql2/promise';
+import mysql, { Connection } from 'mysql2/promise';
 
-let pool: Pool;
-
-export const getDbPool = () => {
-  if (!pool) {
-    pool = mysql.createPool({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_DATABASE || 'novel_db',
-    });
-  }
-  return pool;
+const dbConfig = {
+  host: process.env.MYSQL_HOST || 'localhost',
+  user: process.env.MYSQL_USER || 'root',
+  password: process.env.MYSQL_PASSWORD || 'rootroot',
+  database: process.env.MYSQL_DATABASE || 'novel_db',
 };
 
-// 测试连接
-(async () => {
+export const connectToDatabase = async (): Promise<Connection> => {
   try {
-    const pool = getDbPool();
-    const [rows] = await pool.query('SELECT 1');
-    console.log('MySQL 连接成功:', rows);
-  } catch (error) {
-    console.error('MySQL 连接失败:', error);
+    const connection = await mysql.createConnection(dbConfig);
+    console.log('Database connection successful');
+    return connection;
+  } catch (err) {
+    console.error('Database connection failed:', err);
+    throw err;
   }
-})();
+};
